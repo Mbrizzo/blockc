@@ -52,6 +52,8 @@ class Blockchain:
 
 blockchain = Blockchain()
 
+difficulty = 2
+
 print("Mineração do bloco 1...")
 block1 = Block(1, time.time(), "Red", "")
 blockchain.add_block(block1)
@@ -60,9 +62,15 @@ print("Mineração do bloco 2...")
 block2 = Block(2, time.time(), "Green", "")
 blockchain.add_block(block2)
 
+# Dificuldade de mineração aumentada
+blockchain.difficulty = 4
+
 print("Mineração do bloco 3...")
 block1 = Block(1, time.time(), "Blue", "")
 blockchain.add_block(block1)
+
+# Dificuldade de mineração aumentada
+blockchain.difficulty = 6
 
 print("Mineração do bloco 4...")
 block2 = Block(2, time.time(), "Black", "")
