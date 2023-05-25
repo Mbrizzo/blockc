@@ -5,6 +5,9 @@ class Transaction:
         self.sender = sender
         self.recipient = recipient
         self.amount = amount
+
+    def __str__(self):
+        return f"Sender: {self.sender}, Recipient: {self.recipient}, Amount: {self.amount}"
 class Block:
     def __init__(self, index, timestamp, transactions, data, previous_hash, nonce=0):
         self.index = index
@@ -14,6 +17,9 @@ class Block:
         self.previous_hash = previous_hash
         self.nonce = nonce
         self.hash = self.calculate_hash()
+    def __str__(self):
+        transaction_details = "\n".join(str(transaction) for transaction in self.transactions)
+        return f"Index: {self.index}\nTimestamp: {self.timestamp}\nTransactions:\n{transaction_details}\nHash: {self.hash}\nPrevious Hash: {self.previous_hash}"
 
     def calculate_hash(self):
         sha = hashlib.sha256()
@@ -85,6 +91,8 @@ print("Validade da cadeia:", blockchain.is_chain_valid())
 for block in blockchain.chain:
     print(f"Índice: {block.index}")
     print(f"Timestamp: {block.timestamp}")
-    print(f"Transactions: {block.transactions}")
+    print("Transactions:")
+    for transaction in block.transactions:
+        print(transaction)
     print(f"Hash: {block.hash}")
     print(f"Previous Hash: {block.previous_hash}\n")
