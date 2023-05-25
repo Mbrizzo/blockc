@@ -1,4 +1,6 @@
 /Include
 /Lib
 /Scripts
+/Testes
 pyvenv.cfg
+__pycache__

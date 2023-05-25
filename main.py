@@ -1,10 +1,15 @@
 import hashlib
 import time
-
+class Transaction:
+    def __init__(self, sender, recipient, amount):
+        self.sender = sender
+        self.recipient = recipient
+        self.amount = amount
 class Block:
-    def __init__(self, index, timestamp, data, previous_hash, nonce=0):
+    def __init__(self, index, timestamp, transactions, data, previous_hash, nonce=0):
         self.index = index
         self.timestamp = timestamp
+        self.transactions = transactions
         self.data = data
         self.previous_hash = previous_hash
         self.nonce = nonce
@@ -12,7 +17,7 @@ class Block:
 
     def calculate_hash(self):
         sha = hashlib.sha256()
-        sha.update((str(self.index) + str(self.timestamp) + str(self.data) + str(self.previous_hash) + str(self.nonce)).encode('utf-8'))
+        sha.update((str(self.index) + str(self.timestamp) + str(self.transactions) + str(self.previous_hash) + str(self.nonce)).encode('utf-8'))
         return sha.hexdigest()
     
     #  valor de nonce será acrescido ao bloco quando a condição da mineração seja satisfeita.
@@ -21,18 +26,27 @@ class Block:
         while self.hash[:difficulty] != target:
             self.nonce += 1
             self.hash = self.calculate_hash()
-
-
 class Blockchain:
     def __init__(self):
         self.chain = [self.create_genesis_block()]
         self.difficulty = 4
+        self.pending_transactions = []
 
     def create_genesis_block(self):
-        return Block(0, time.time(), "Genesis Block", "0")
+        return Block(0, time.time(), [], "Genesis Block", "0", nonce=0)
 
     def get_latest_block(self):
         return self.chain[-1]
+
+    def add_transaction(self, transaction):
+        self.pending_transactions.append(transaction)
+
+    def mine_pending_transactions(self, miner_address):
+        previous_hash = self.get_latest_block().hash
+        block = Block(len(self.chain), time.time(), self.pending_transactions, "Block data", previous_hash, nonce=0)
+        block.mine_block(self.difficulty)
+        self.chain.append(block)
+        self.pending_transactions = []
 
     def add_block(self, new_block):
         new_block.previous_hash = self.get_latest_block().hash
@@ -52,38 +66,25 @@ class Blockchain:
 
 blockchain = Blockchain()
 
-difficulty = 2
+transaction1 = Transaction("Bismuto", "Mafalda", 7)
+transaction2 = Transaction("Saci", "Oracio", 3)
+transaction3 = Transaction("Florentina", "Dolores", 0.5)
 
-print("Mineração do bloco 1...")
-block1 = Block(1, time.time(), "Red", "")
-blockchain.add_block(block1)
+# Adição das transações pendentes
+blockchain.add_transaction(transaction1)
+blockchain.add_transaction(transaction2)
+blockchain.add_transaction(transaction3)
 
-print("Mineração do bloco 2...")
-block2 = Block(2, time.time(), "Green", "")
-blockchain.add_block(block2)
+# Mineração das transações pendentes
+print("Minerando blocos...")
+blockchain.mine_pending_transactions("Miner")
 
-# Dificuldade de mineração aumentada
-blockchain.difficulty = 4
-
-print("Mineração do bloco 3...")
-block1 = Block(1, time.time(), "Blue", "")
-blockchain.add_block(block1)
-
-# Dificuldade de mineração aumentada
-blockchain.difficulty = 6
-
-print("Mineração do bloco 4...")
-block2 = Block(2, time.time(), "Black", "")
-blockchain.add_block(block2)
-
-# Verifica a validade da cadeia
+# Verificação da cadeia
 print("Validade da cadeia:", blockchain.is_chain_valid())
 
 for block in blockchain.chain:
-    print(f"Block {block.index}:")
+    print(f"Índice: {block.index}")
     print(f"Timestamp: {block.timestamp}")
-    print(f"Data: {block.data}")
-    print(f"Nonce: {block.nonce}")
-    print(f"Previous Hash: {block.previous_hash}")
+    print(f"Transactions: {block.transactions}")
     print(f"Hash: {block.hash}")
-    print()
+    print(f"Previous Hash: {block.previous_hash}\n")
