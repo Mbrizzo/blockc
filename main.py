@@ -2,6 +2,11 @@ import hashlib
 import time
 
 from signature import *
+from sync import synchronize_chain, listen_for_requests
+
+port = 8080
+outro_host = '192.168.0.100'  # Endereço IP do outro nó
+outro_port = 5000  # Porta em que o outro nó está escutando
 
 class Transaction:
     def __init__(self, sender, recipient, amount):
@@ -76,9 +81,15 @@ class Blockchain:
             if current_block.previous_hash != previous_block.hash:
                 return False
         return True
-
+    
 
 blockchain = Blockchain()
+
+# Iniciar a sincronização com outro nó na rede
+blockchain.chain = synchronize_chain(outro_host, outro_port)
+
+# Iniciar a escuta de solicitações de outros nós
+listen_for_requests(port, blockchain)
 
 transaction1 = Transaction("Bismuto", "Mafalda", 7)
 transaction2 = Transaction("Saci", "Oracio", 3)
