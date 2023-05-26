@@ -94,6 +94,48 @@ class Blockchain:
         return True
 
 
+def generate_keys():
+    private_key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=2048
+    )
+    public_key = private_key.public_key()
+
+    private_pem = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption()
+    )
+    public_pem = public_key.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+
+    private_key_text.delete("1.0", tk.END)
+    private_key_text.insert(tk.END, private_pem.decode())
+
+    public_key_text.delete("1.0", tk.END)
+    public_key_text.insert(tk.END, public_pem.decode())
+
+
+def sign_transaction():
+    private_key_pem = private_key_text.get("1.0", tk.END)
+    private_key = serialization.load_pem_private_key(private_key_pem.encode(), password=None)
+    transaction = Transaction(sender_entry.get(), recipient_entry.get(), amount_entry.get())
+    transaction.sign_transaction(private_key)
+    signature_entry.delete(0, tk.END)
+    signature_entry.insert(tk.END, transaction.signature)
+
+
+def verify_signature():
+    public_key_pem = public_key_text.get("1.0", tk.END)
+    public_key = serialization.load_pem_public_key(public_key_pem.encode())
+    transaction = Transaction(sender_entry.get(), recipient_entry.get(), amount_entry.get())
+    signature = signature_entry.get()
+    transaction.signature = signature.encode()
+    is_valid = transaction.verify_signature(public_key)
+    result_label.config(text="Valid" if is_valid else "Invalid")
+
 
 root = tk.Tk()
 root.title("Transaction Signature")
@@ -106,5 +148,42 @@ sender_label = tk.Label(label_frame, text="Sender:")
 sender_label.grid(row=0, column=0, sticky="e")
 sender_entry = tk.Entry(label_frame)
 sender_entry.grid(row=0, column=1)
+
+recipient_label = tk.Label(label_frame, text="Recipient:")
+recipient_label.grid(row=1, column=0, sticky="e")
+recipient_entry = tk.Entry(label_frame)
+recipient_entry.grid(row=1, column=1)
+
+amount_label = tk.Label(label_frame, text="Amount:")
+amount_label.grid(row=2, column=0, sticky="e")
+amount_entry = tk.Entry(label_frame)
+amount_entry.grid(row=2, column=1)
+
+generate_keys_button = tk.Button(root, text="Generate Keys", command=generate_keys)
+generate_keys_button.pack(pady=5)
+
+private_key_label = tk.Label(root, text="Private Key:")
+private_key_label.pack()
+private_key_text = tk.Text(root, height=6, width=40)
+private_key_text.pack()
+
+public_key_label = tk.Label(root, text="Public Key:")
+public_key_label.pack()
+public_key_text = tk.Text(root, height=6, width=40)
+public_key_text.pack()
+
+sign_button = tk.Button(root, text="Sign Transaction", command=sign_transaction)
+sign_button.pack(pady=5)
+
+verify_button = tk.Button(root, text="Verify Signature", command=verify_signature)
+verify_button.pack(pady=5)
+
+signature_label = tk.Label(root, text="Signature:")
+signature_label.pack()
+signature_entry = tk.Entry(root)
+signature_entry.pack()
+
+result_label = tk.Label(root, text="")
+result_label.pack(pady=5)
 
 root.mainloop()
